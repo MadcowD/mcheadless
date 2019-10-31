@@ -1,0 +1,70 @@
+Minecraft Notes:
+
+1. Minecraft main loop works as follows:
+   Main.class creates a minecraft instance M and calls M.run()
+
+   Minecraft Run:
+       M.init()
+
+       while(M.running){
+           M.runGameLoop()
+       }
+
+
+
+EGL Headless Notes:
+    How headless rendering works: https://stackoverflow.com/questions/26920835/can-egl-application-run-in-console-mode 
+
+    LWGJL EGL: https://github.com/LWJGL/lwjgl/blob/master/src/java/org/lwjgl/opengles/EGL.java
+
+    Allow using lwjgl without display mode extension: https://github.com/LWJGL/lwjgl/issues/11
+
+    PEGLGEARS Nvidia docker: https://devblogs.nvidia.com/gpu-containers-runtime/
+
+    Running a simple EGL test (headless): https://github.com/sylabs/singularity/issues/1635
+
+
+
+    LWGJL EGL Contexts with Hidden (offscreen) or EGL devices:
+        https://github.com/LWJGL/lwjgl3/blob/master/modules/samples/src/test/java/org/lwjgl/demo/egl/EGLDemo.java 
+            # Uses GLFW to create a window.
+            # Can GLFW create a headless window?
+        Does GLFW support creating OpenGL contexts for headless rendering (to an offscreen buffer)?
+            https://github.com/glfw/glfw/issues/648 
+            (
+                >    With EGL and osmesa support is the following still true?
+                    GLFW doesn't support creating contexts without an associated window. However, contexts with hidden windows can be created with the GLFW_VISIBLE window hint.
+
+                    I need GPU accelerated headless contexts. Please move to a new issue if this isn't a good spot for this question
+
+                > @RobotCaleb How headless do you need it and on what platforms? Do you mean without requiring the window system to be running, or just without creating a hidden window?
+
+                > It needs to be on a system without X running. It seems EGL supports this but my first test was by providing the EGL hint to the window creation, but that just created a window. Which makes sense.
+
+                > @RobotCaleb There is no support in GLFW for accelerated headless rendering at the moment. There is an OSMesa / no-op backend and I will soon merge an EGLDevice / Linux backend (you can find it in the egldevice branch).
+
+                >@elmindreda Thanks for the info. I'll look through the code in egldevice. Will this be enough to have accelerated headless rendering or will I need to look into adding that functionality?
+
+                >@RobotCaleb It's enough, but only on drivers that support it. I think it's still Nvidia only.
+            ) 
+            # This is great news, because if the `egldevice` branch is merged in then
+            1. we can link lwjgl3 against this new GLFW
+            2. we can link minecraft against this modified lwjgl 
+            3. Then we can create a new GLFW window on an EGL device.
+
+            -> Petition to get it merged
+            https://discourse.glfw.org/t/support-for-egldevice-headless-no-x-server-off-screen-rendering/1436
+            https://github.com/glfw/glfw/pull/786
+            https://github.com/glfw/glfw/issues/1592
+
+            This is the blocker now :(
+
+                We have direct EGL support, but no way to initialize the correct
+                display device (EGLDevice.) 
+                We could actually do the work to get it working, and I don't see why not.
+
+                
+
+
+TODOS:
+[] Create a docker container for development of headless Minecraft.
